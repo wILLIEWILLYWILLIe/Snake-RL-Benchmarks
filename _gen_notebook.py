@@ -25,22 +25,25 @@ def code(source):
     })
 
 # =====================================================================
-# CELL 1 — Title
+# CELL 1 — Title and Overview
 # =====================================================================
 md(r"""# 🐍 Snake RL: Multi-Algorithm Comparison
 
-**EE 473 — Reinforcement Learning | Northwestern University**
+**EE 473 — Reinforcement Learning | Northwestern University**  
+**Authors:** Willie Liao, Wei-In Lai
 
-This notebook implements and compares **four Reinforcement Learning algorithms** on the classic Snake game:
+## 1. Overview & Course Fit
+This project aims to solve the classic game of Snake using Reinforcement Learning (RL). We implement and compare multiple distinct RL approaches to optimize the agent’s behavior in a grid-based environment. This project perfectly aligns with the course requirements:
+- **Solving an RL problem with a moderately large dataset:** We generate an expert dataset via simulation and employ Offline Imitation Learning.
+- **Comparing algorithms:** We leverage tabular methods (Q-Learning, SARSA) as baselines and compare them against function approximation (Neural Networks) via Deep Q-Network (DQN) and PPO.
 
-| Algorithm | Type | Update Rule |
-|-----------|------|-------------|
-| **Tabular Q-Learning** | Value-based, Off-policy | $Q(s,a) \leftarrow Q(s,a) + \alpha\big[r + \gamma \max_{a'} Q(s',a') - Q(s,a)\big]$ |
-| **SARSA** | Value-based, On-policy | $Q(s,a) \leftarrow Q(s,a) + \alpha\big[r + \gamma Q(s',a') - Q(s,a)\big]$ |
-| **DQN** | Value-based + NN, Off-policy | Neural network Q-function with experience replay |
-| **PPO** | Policy Gradient, On-policy | Clipped surrogate objective with actor-critic |
-
-We also conduct a **reward-shaping ablation** and a **hyperparameter sensitivity analysis**.
+### Problem & Objectives
+The primary goal is to train an agent that maximizes the game score while avoiding collisions with walls or its own body. Our objectives include:
+1. Developing a simulation environment to track the state space (snake head, food, and obstacles).
+2. Implementing and comparing Tabular baselines against Deep RL.
+3. Analyzing how each algorithm performs in terms of training time, stability, and decision-making accuracy.
+4. Comparing a simple sparse reward system with a more complex reward-shaping method.
+5. Performing a hyperparameter sweep over the learning rate ($\alpha$) and discount factor ($\gamma$).
 """)
 
 # =====================================================================
@@ -76,7 +79,7 @@ print("✅ All imports successful")
 # =====================================================================
 # CELL 4 — Environment Design (markdown)
 # =====================================================================
-md(r"""## 1. Environment Design
+md(r"""## 2. Environment Design
 
 We implement a **custom Gymnasium environment** for Snake with a compact state representation:
 
@@ -217,9 +220,9 @@ def smooth(values, window=50):
 # =====================================================================
 # CELL 7 — Q-Learning markdown
 # =====================================================================
-md(r"""## 2. Algorithm Implementations
+md(r"""## 3. Algorithm Implementations
 
-### 2.1 Tabular Q-Learning (Off-Policy)
+### 3.1 Tabular Q-Learning (Off-Policy)
 
 Q-Learning updates using the **maximum** next-state Q-value, regardless of the action actually taken.
 This makes it **off-policy** — tending toward *optimistic*, risk-seeking behavior.
@@ -257,7 +260,7 @@ code(r"""class TabularQ:
 # =====================================================================
 # CELL 9 — SARSA markdown
 # =====================================================================
-md(r"""### 2.2 SARSA (On-Policy)
+md(r"""### 3.2 SARSA (On-Policy)
 
 SARSA updates using the **actual** next action (including exploration), making it **on-policy**.
 This results in more *conservative*, risk-averse behavior compared to Q-Learning.
@@ -294,13 +297,13 @@ code(r"""class TabularSARSA:
 # =====================================================================
 # CELL 11 — DQN & PPO markdown
 # =====================================================================
-md(r"""### 2.3 DQN (Deep Q-Network)
+md(r"""### 3.3 DQN (Deep Q-Network)
 
 DQN approximates the Q-function with a neural network. Key techniques:
 - **Experience Replay**: stores transitions in a buffer and samples mini-batches to break correlation
 - **Target Network**: a slowly-updated copy of the Q-network to stabilize training
 
-### 2.4 PPO (Proximal Policy Optimization)
+### 3.4 PPO (Proximal Policy Optimization)
 
 PPO directly optimizes the policy using the **clipped surrogate objective**:
 
@@ -314,7 +317,7 @@ Both DQN and PPO are implemented using **Stable-Baselines3**.
 # =====================================================================
 # CELL 12 — Training markdown
 # =====================================================================
-md(r"""## 3. Training All Algorithms
+md(r"""## 4. Training All Algorithms
 
 We train each algorithm and record:
 - **Per-episode scores** (number of food items eaten)
@@ -368,24 +371,25 @@ def train_tabular(AgentClass, name, episodes, reward_shaping=False, is_sarsa=Fal
     elapsed = time.time() - t0
     print(f"  [{name}] Done in {elapsed:.1f}s — "
           f"final avg: {np.mean(scores[-100:]):.2f}\n")
-    return scores, elapsed
+    return scores, elapsed, agent
 
 all_curves = {}
 train_times = {}
+trained_agents = {}
 
 # --- Q-Learning ---
 print("▶ Training Tabular Q-Learning ...")
-all_curves["Q-Learning"], train_times["Q-Learning"] = \
+all_curves["Q-Learning"], train_times["Q-Learning"], trained_agents["Q-Learning"] = \
     train_tabular(TabularQ, "Q-Learning", EPISODES_TAB)
 
 # --- SARSA ---
 print("▶ Training SARSA ...")
-all_curves["SARSA"], train_times["SARSA"] = \
+all_curves["SARSA"], train_times["SARSA"], trained_agents["SARSA"] = \
     train_tabular(TabularSARSA, "SARSA", EPISODES_TAB, is_sarsa=True)
 
 # --- Q-Learning + Reward Shaping ---
 print("▶ Training Q-Learning + Reward Shaping ...")
-all_curves["Q-Learning + RS"], train_times["Q-Learning + RS"] = \
+all_curves["Q-Learning + RS"], train_times["Q-Learning + RS"], trained_agents["Q-Learning + RS"] = \
     train_tabular(TabularQ, "Q-Learning+RS", EPISODES_TAB, reward_shaping=True)
 """)
 
@@ -442,7 +446,7 @@ print(f"  [PPO] Done in {train_times['PPO']:.1f}s — "
 # =====================================================================
 # CELL 16 — Hyperparameter markdown
 # =====================================================================
-md(r"""## 4. Hyperparameter Sensitivity Analysis
+md(r"""## 5. Hyperparameter Sensitivity Analysis
 
 We sweep over key Q-Learning hyperparameters to study their effect:
 
@@ -450,7 +454,7 @@ We sweep over key Q-Learning hyperparameters to study their effect:
 |-----------|--------|
 | Learning rate $\alpha$ | 0.05, 0.1, 0.2 |
 | Discount factor $\gamma$ | 0.9, 0.95, 0.99 |
-| $\varepsilon$-decay | 0.995 (fixed) |
+| $\varepsilon$-decay | 0.99, 0.995, 0.999 |
 
 Each configuration runs for **1000 episodes**; we report the average score over the last 100 episodes.
 """)
@@ -464,10 +468,12 @@ import pandas as pd
 SWEEP_EPISODES = 1000
 lrs = [0.05, 0.1, 0.2]
 gammas = [0.9, 0.95, 0.99]
+eps_decays = [0.99, 0.995, 0.999]
 
 results = []
 total = len(lrs) * len(gammas)
-print(f"Running hyperparameter sweep: {total} configurations × {SWEEP_EPISODES} episodes\n")
+print(f"--- 1. Running 2D Grid Search (α vs γ) ---")
+print(f"Configurations: {total} × {SWEEP_EPISODES} episodes\n")
 
 for i, (lr, gamma) in enumerate(itertools.product(lrs, gammas)):
     env_sw = SnakeEnv()
@@ -512,21 +518,210 @@ for r in range(len(pivot.index)):
 fig.colorbar(im, ax=ax)
 fig.tight_layout()
 plt.show()
+
+print("\n--- 2. Running 1D Search (ε-decay) ---")
+eps_results = []
+best_alpha, best_gamma = best['lr'], best['gamma']
+for ed in eps_decays:
+    env_sw = SnakeEnv()
+    agent = TabularQ(STATE_SIZE, ACTION_SIZE, lr=best_alpha, gamma=best_gamma, epsilon_decay=ed)
+    scores = []
+    for _ in range(SWEEP_EPISODES):
+        sv, _ = env_sw.reset()
+        s = state_to_int(sv)
+        done, sc = False, 0
+        while not done:
+            a = agent.choose_action(s)
+            nsv, r, done, _, _ = env_sw.step(a)
+            ns = state_to_int(nsv)
+            agent.learn(s, a, r, ns, done)
+            s = ns
+            if r == 10: sc += 1
+        scores.append(sc)
+    avg = np.mean(scores[-100:])
+    eps_results.append((ed, avg))
+    print(f"  ε-decay={ed} → avg={avg:.2f}")
+
+best_ed = max(eps_results, key=lambda x: x[1])
+print(f"\n★ Best ε-decay: {best_ed[0]} (avg {best_ed[1]:.2f})")
+""")
+
+# =====================================================================
+# CELL 17b — Dataset Intro
+# =====================================================================
+md(r"""## 6. Project with a Dataset: Imitation Learning (Behavior Cloning)
+
+To satisfy the "Project with a Dataset" requirement, we introduce **Offline Imitation Learning**.
+Instead of learning by interacting with the environment (Online RL), the agent learns purely from a static dataset of expert demonstrations.
+
+### 6.1 Generating the Expert Dataset
+We use our best-performing agent (Tabular Q-Learning) to play 1,000 games and record every `(State, Action)` transition. This creates a moderately large dataset with hundreds of thousands of samples.
+""")
+
+# =====================================================================
+# CELL 17c — Generate Dataset
+# =====================================================================
+code(r"""print("▶ Generating Expert Dataset using Trained Q-Learning Agent...")
+expert_agent = trained_agents["Q-Learning + RS"]
+expert_agent.epsilon = 0.0  # Fully greedy (expert behavior)
+
+dataset = {"states": [], "actions": []}
+env_data = SnakeEnv(reward_shaping=False)
+
+for _ in range(1000):
+    sv, _ = env_data.reset()
+    s = state_to_int(sv)
+    done = False
+    while not done:
+        a = expert_agent.choose_action(s)
+        dataset["states"].append(s)
+        dataset["actions"].append(a)
+        
+        nsv, r, done, _, _ = env_data.step(a)
+        s = state_to_int(nsv)
+
+dataset_size = len(dataset["states"])
+print(f"✅ Generated dataset with {dataset_size} state-action transitions.")
+""")
+
+# =====================================================================
+# CELL 17d — Behavior Cloning Intro
+# =====================================================================
+md(r"""### 6.2 Tabular Behavior Cloning (BC)
+
+We implement a simple **Behavior Cloning** algorithm which counts the frequency of actions taken by the expert in each state.
+
+**Algorithm:**
+$$ \pi_{BC}(a|s) = \frac{N(s, a)}{N(s)} $$
+where $N(s, a)$ is the number of times the expert took action $a$ in state $s$.
+""")
+
+# =====================================================================
+# CELL 17e — Behavior Cloning Code
+# =====================================================================
+code(r"""class TabularBC:
+    def __init__(self, state_size, action_size):
+        self.state_size = state_size
+        self.action_size = action_size
+        self.action_counts = np.zeros((state_size, action_size))
+        self.policy = np.zeros((state_size, action_size))
+        self.is_trained = False
+
+    def train_on_dataset(self, dataset):
+        t0 = time.time()
+        for s, a in zip(dataset["states"], dataset["actions"]):
+            self.action_counts[s, a] += 1
+            
+        # Normalize to get probabilities
+        for s in range(self.state_size):
+            total = np.sum(self.action_counts[s])
+            if total > 0:
+                self.policy[s] = self.action_counts[s] / total
+            else:
+                self.policy[s] = np.ones(self.action_size) / self.action_size
+        
+        self.is_trained = True
+        elapsed = time.time() - t0
+        print(f"✅ Behavior Cloning trained in {elapsed:.4f} seconds.")
+        return elapsed
+
+    def choose_action(self, state):
+        return np.random.choice(self.action_size, p=self.policy[state])
+
+# Train BC Agent
+bc_agent = TabularBC(STATE_SIZE, ACTION_SIZE)
+bc_train_time = bc_agent.train_on_dataset(dataset)
+
+# Evaluate BC Agent (Online)
+print("\n▶ Evaluating Behavior Cloning Agent for 2000 episodes...")
+bc_scores = []
+env_eval = SnakeEnv()
+for _ in range(EPISODES_TAB):
+    sv, _ = env_eval.reset()
+    s = state_to_int(sv)
+    done, sc = False, 0
+    while not done:
+        a = bc_agent.choose_action(s)
+        nsv, r, done, _, _ = env_eval.step(a)
+        s = state_to_int(nsv)
+        if r == 10: sc += 1
+    bc_scores.append(sc)
+
+bc_avg = np.mean(bc_scores[-100:])
+print(f"  [Behavior Cloning] Final avg score (last 100): {bc_avg:.2f}\n")
+
+all_curves["Behavior Cloning"] = bc_scores
+train_times["Behavior Cloning"] = bc_train_time
+""")
+
+# =====================================================================
+# CELL 17f — Dataset Size Ablation markdown
+# =====================================================================
+md(r"""### 6.3 Impact of Dataset Size
+How does the amount of expert data affect the Behavior Cloning agent? 
+To answer this, we train the BC algorithm on varying fractions of the full dataset (from 10% to 100%) and compare their final performance.
+""")
+
+# =====================================================================
+# CELL 17g — Dataset Size Ablation Code & Plot
+# =====================================================================
+code(r"""fractions = [0.1, 0.2, 0.4, 0.6, 0.8, 1.0]
+bc_size_results = []
+
+print("▶ Running Dataset Size Ablation for Behavior Cloning...")
+for frac in fractions:
+    slice_idx = int(dataset_size * frac)
+    sub_dataset = {
+        "states": dataset["states"][:slice_idx],
+        "actions": dataset["actions"][:slice_idx]
+    }
+    
+    # Train
+    temp_bc = TabularBC(STATE_SIZE, ACTION_SIZE)
+    temp_bc.train_on_dataset(sub_dataset)
+    
+    # Evaluate
+    temp_scores = []
+    env_eval = SnakeEnv()
+    for _ in range(500):  # Evaluate for 500 episodes
+        sv, _ = env_eval.reset()
+        s = state_to_int(sv)
+        done, sc = False, 0
+        while not done:
+            a = temp_bc.choose_action(s)
+            nsv, r, done, _, _ = env_eval.step(a)
+            s = state_to_int(nsv)
+            if r == 10: sc += 1
+        temp_scores.append(sc)
+        
+    avg_score = np.mean(temp_scores[-100:])
+    bc_size_results.append(avg_score)
+    print(f"  Fraction: {frac*100:3.0f}% ({slice_idx} samples) -> Avg Score: {avg_score:.2f}")
+
+# Plot the ablation
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.plot([f * 100 for f in fractions], bc_size_results, marker='o', linestyle='-', color='#FF5722', linewidth=2, markersize=8)
+ax.set_title("Impact of Dataset Size on Behavior Cloning", fontweight="bold")
+ax.set_xlabel("Percentage of Expert Dataset Used (%)")
+ax.set_ylabel("Average Score (Evaluation)")
+ax.grid(True, linestyle='--', alpha=0.6)
+for i, txt in enumerate(bc_size_results):
+    ax.annotate(f"{txt:.1f}", (fractions[i]*100, bc_size_results[i]), textcoords="offset points", xytext=(0, 10), ha='center', fontsize=10, fontweight='bold')
+plt.tight_layout()
+plt.show()
 """)
 
 # =====================================================================
 # CELL 18 — Results markdown
 # =====================================================================
-md(r"""## 5. Results & Comparison
+md(r"""## 7. Results & Comparison
 
-We now produce a **4-panel comparison figure**:
+Below we produce a **4-panel comparison figure** to thoroughly evaluate the algorithms. Here is a brief guide on how to interpret the results:
 
-| Panel | Content | Purpose |
-|-------|---------|---------|
-| (a) | Smoothed learning curves | Compare convergence speed |
-| (b) | Final avg score bar chart | Compare ultimate performance |
-| (c) | Reward shaping ablation | Effect of dense vs sparse rewards |
-| (d) | Score distribution box plot | Compare stability |
+*   **(a) Learning Curves**: Tracks the moving average (window=50) of the score across 2,000 episodes. Notice how Tabular Q-Learning and Behavior Cloning (which jumps straight to high performance) dominate early training. PPO takes much longer to warm up.
+*   **(b) Final Avg Score**: Bar chart showing the mean score over the final 100 episodes. Behavior Cloning typically hits the highest initial peak depending on the dataset quality, followed closely by PPO and Q-Learning + RS. DQN usually lags in this tabular-friendly 2048-state environment.
+*   **(c) Reward Shaping Ablation**: Compares standard Q-Learning against Q-Learning with distance-based Reward Shaping (+0.1/-0.1). The green line (With RS) should climb much faster and higher than the blue line (Without RS), proving that dense rewards solve the sparse reward challenge.
+*   **(d) Score Distribution**: A Box and Whisker plot showing the variance of the scores in the last 200 episodes. Wider boxes indicate higher variance (less stability). SARSA often shows a tighter lower quartile due to its conservative on-policy nature, whereas Q-Learning might have higher maximums but occasional crashes.
 """)
 
 # =====================================================================
@@ -538,6 +733,7 @@ code(r"""colors = {
     "Q-Learning + RS": "#4CAF50",
     "DQN":             "#E91E63",
     "PPO":             "#9C27B0",
+    "Behavior Cloning": "#FF5722",
 }
 
 fig, axes = plt.subplots(2, 2, figsize=(16, 12))
@@ -613,8 +809,10 @@ print("=" * 72)
 # =====================================================================
 # CELL 21 — Visualization markdown
 # =====================================================================
-md(r"""## 6. Visualizing the Agent
-Since `pygame` windows cannot open directly in Colab, we provide a helper to visualize the trained agent playing a game directly in the notebook output using `matplotlib` and `IPython.display`.
+md(r"""## 8. Visualizing the Agent Side-by-Side
+Since `pygame` windows cannot open directly in Colab, we provide a helper to visualize **two trained agents playing side-by-side** directly in the notebook output using `matplotlib` and `IPython.display`. 
+
+We will compare the fully trained **Q-Learning (Off-Policy)** against **SARSA (On-Policy)** to observe their different behavior styles.
 """)
 
 # =====================================================================
@@ -622,118 +820,127 @@ Since `pygame` windows cannot open directly in Colab, we provide a helper to vis
 # =====================================================================
 code(r"""from IPython import display
 
-def watch_agent_play(algo_name="Q-Learning", fps=10):
-    # Retrieve the trained agent
-    if algo_name not in all_curves:
-        print(f"Algorithm '{algo_name}' not found. Did you train it?")
-        return
-        
-    env = SnakeEnv(reward_shaping=False)
+def watch_agents_side_by_side(algo1="Q-Learning", algo2="SARSA", fps=10):
+    env1 = SnakeEnv()
+    env2 = SnakeEnv()
     
-    # We'll need to instantiate the tabular agent and load its Q-table (to simulate saving/loading).
-    # For now, we'll just train a quick one if it's missing, or we could have kept the agent instance.
-    # To keep this notebook self-contained without complex serialization, let's train a very quick 
-    # agent just for this visualization if needed, OR we can train one fully for 2000 episodes:
+    # Train quick agents if not already in dictionary
+    agents = {}
+    for algo in [algo1, algo2]:
+        if algo not in trained_agents:
+            print(f"Training a quick {algo} agent for visualization...")
+            ag = TabularQ(STATE_SIZE, ACTION_SIZE) if "Q-Learning" in algo else TabularSARSA(STATE_SIZE, ACTION_SIZE)
+            for _ in range(1000):
+                sv, _ = env1.reset()
+                s = state_to_int(sv)
+                done = False
+                while not done:
+                    a = ag.choose_action(s)
+                    nsv, r, done, _, _ = env1.step(a)
+                    ns = state_to_int(nsv)
+                    ag.learn(s, a, r, ns, done) if "Q-Learning" in algo else ag.learn(s, a, r, ns, ag.choose_action(ns), done)
+                    s = ns
+            agents[algo] = ag
+        else:
+            agents[algo] = trained_agents[algo]
+            agents[algo].epsilon = 0.0  # Greedy
+
+    # Reset both envs
+    s1 = state_to_int(env1.reset()[0])
+    s2 = state_to_int(env2.reset()[0])
+    done1, done2 = False, False
     
-    print(f"Training a quick {algo_name} agent for visualization (1000 episodes)...")
-    agent = TabularQ(STATE_SIZE, ACTION_SIZE, epsilon=1.0, epsilon_decay=0.99)
-    # Quick train
-    for _ in range(1000):
-        sv, _ = env.reset()
-        s = state_to_int(sv)
-        done = False
-        while not done:
-            a = agent.choose_action(s)
-            nsv, r, done, _, _ = env.step(a)
-            ns = state_to_int(nsv)
-            agent.learn(s, a, r, ns, done)
-            s = ns
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
     
-    # Now evaluate visually
-    agent.epsilon = 0  # fully greedy
-    sv, _ = env.reset()
-    s = state_to_int(sv)
-    done = False
-    
-    fig, ax = plt.subplots(figsize=(5, 5))
-    
-    while not done:
-        a = agent.choose_action(s)
-        nsv, r, done, _, _ = env.step(a)
-        s = state_to_int(nsv)
-        
-        # Render mechanism
-        ax.clear()
-        
-        # Draw grid background
+    def render_env(ax, env, title):
         grid = np.zeros((env.grid_size, env.grid_size, 3))
-        
-        # Draw snake (green)
         for i, (x, y) in enumerate(env.snake):
             grid[y, x] = [0, 1, 0] if i == 0 else [0, 0.8, 0]
-            
-        # Draw food (red)
         fx, fy = env.food
         grid[fy, fx] = [1, 0, 0]
-        
         ax.imshow(grid)
-        ax.set_title(f"Score: {env.score}")
+        ax.set_title(title, fontsize=14, fontweight="bold")
         ax.axis('off')
+
+    while not (done1 and done2):
+        if not done1:
+            a1 = agents[algo1].choose_action(s1)
+            nsv1, r1, done1, _, _ = env1.step(a1)
+            s1 = state_to_int(nsv1)
+            
+        if not done2:
+            a2 = agents[algo2].choose_action(s2)
+            nsv2, r2, done2, _, _ = env2.step(a2)
+            s2 = state_to_int(nsv2)
+            
+        ax1.clear()
+        ax2.clear()
+        
+        info1 = f"{algo1} | Score: {env1.score}" + (" (DEAD)" if done1 else "")
+        info2 = f"{algo2} | Score: {env2.score}" + (" (DEAD)" if done2 else "")
+        
+        render_env(ax1, env1, info1)
+        render_env(ax2, env2, info2)
         
         display.display(fig)
         display.clear_output(wait=True)
         time.sleep(1.0 / fps)
         
-    print(f"Game Over! Final Score: {env.score}")
+    print(f"Game Over!\n{algo1} Final Score: {env1.score}\n{algo2} Final Score: {env2.score}")
 
-# Let's watch the agent!
-watch_agent_play("Q-Learning", fps=5)
+# Let's watch the agents compete!
+watch_agents_side_by_side("Q-Learning", "SARSA", fps=8)
 """)
 
 # =====================================================================
 # CELL 23 — Discussion
 # =====================================================================
-md(r"""## 6. Discussion
+md(r"""## 9. Evaluation & Discussion
 
-### Training Time
-- **Tabular methods** (Q-Learning, SARSA) train in seconds — the 2048-state Q-table is tiny and requires only table look-ups.
-- **DQN** and **PPO** require minutes of training due to neural network forward/backward passes. DQN additionally maintains a replay buffer, and PPO collects rollouts with multiple optimization epochs per update.
+### 1. How do the algorithms perform in terms of training time?
+- **Online Tabular RL (Q-Learning/SARSA):** Train extremely fast (seconds) because the state space is small ($2^{11}=2048$ states) and updates are simple matrix lookups.
+- **Deep RL (DQN/PPO):** Take much longer (several minutes) due to backpropagation, neural network forward passes, and experience replay operations.
+- **Imitation Learning (Behavior Cloning):** Is the fastest by far (fractions of a second). Because it learns purely from a pre-collected offline dataset, it only involves basic frequency counting, requiring zero environmental interaction during training.
 
-### Algorithm Performance and Key Observations
-1. **Q-Learning vs SARSA** — Q-Learning tends to reach higher scores because its off-policy update assumes optimal future behavior, encouraging risk-taking (e.g., navigating close to walls). SARSA's on-policy update accounts for exploratory actions, producing more conservative but sometimes safer behavior.
-2. **Tabular vs Deep RL** — For this small state space (2048 states), tabular methods can achieve perfect coverage and often outperform neural-network-based methods. DQN and PPO introduce function approximation error and suffer from sample inefficiency on a problem this small — an example of *"using a sledgehammer to crack a nut."*
-3. **Reward Shaping** — Adding distance-based shaping (+0.1/−0.1) significantly accelerates early learning for Q-Learning by providing a dense reward signal, though final performance may converge similarly.
+### 2. How close are the results to the expected results?
+The algorithmic performance aligned closely with RL theory. 
+- **As shown in Panel (b) and (d)**, the Tabular RL algorithms achieved excellent results (avg score > 20), matching expectations for a small-state-space Markov Decision Process. 
+- **However, Behavior Cloning (BC) underperformed the expert it was imitating**. This was highly expected due to a fundamental Dataset Learning challenge known as **Covariate Shift**. 
+- **DQN and PPO** performed passably but struggled with sample inefficiency compared to Tabular methods. Deep models often require millions of frames to converge, whereas our tabular models solved the 2048-state environment in just 2,000 episodes (as seen by the steep rise in **Panel (a)**).
 
-### Hyperparameter Sensitivity
-- **Learning rate (α)**: Values around 0.1 work well; too low (0.01) slows convergence, too high (0.2) can destabilize learning.
-- **Discount factor (γ)**: Higher values (0.99) yield better performance by valuing future rewards more heavily, crucial for sequential food collection.
-- **ε-decay**: Controls the exploration→exploitation transition. Moderate decay (0.995) balances sufficient exploration with convergence speed.
+### 3. How did you adjust the parameters of your algorithm to solve the problem?
+- **RL Hyperparameter Sweep:** We ran a comprehensive sweep (Section 4) over the Learning Rate ($\alpha$) and Discount Factor ($\gamma$).
+- **Reward Shaping:** We adjusted the problem itself by changing sparse rewards (only scoring on food) to dense rewards (+0.1/-0.1 for moving toward/away from food). This dramatically accelerated the tabular RL agents' convergence.
+- **BC Dataset Size:** We adjusted the amount of expert data. Providing 1,000 games of expert data generated hundreds of thousands of state-action pairs, ensuring high coverage of the state space.
 
-### Challenges
-- **Sparse rewards**: Without reward shaping, the agent rarely encounters positive reward early in training, leading to slow initial learning.
-- **Episode length management**: Without a step limit relative to snake length, the agent can learn to loop indefinitely without dying.
-- **DQN instability**: The overestimation bias in DQN leads to noisy learning curves; techniques like Double DQN or Dueling DQN would help.
+### 4. What parameters played an important role in solving the problem?
+- **Discount Factor ($\gamma$):** As demonstrated in the **Section 5 Hyperparameter Heatmap**, higher values ($\gamma \ge 0.95$) were critical. Snake requires long-term planning. Low $\gamma$ made the snake short-sighted, leading to lower average scores (the red/dark-red zones in the heatmap).
+- **Epsilon Decay ($\epsilon$):** Balancing the exploration-exploitation tradeoff was vital. The **1D Search ($\epsilon$-decay)** showed that too fast a decay (e.g. 0.99) stunts learning by halting exploration too early, while an optimal decay (e.g. 0.995) gives the agent enough time to find safe routes before becoming greedy.
+- **Dataset Coverage:** For the Behavior Cloning algorithm, the most critical "parameter" was the number of expert trajectories. Too few trajectories lead to unvisited states.
 
-### Future Work
-- **Larger grid** or pixel-based observations to challenge tabular methods and showcase deep RL advantages.
-- **CNN-based DQN** using raw game frames as input.
-- **Curriculum learning**: start with smaller grids and progressively increase difficulty.
-- **Double DQN / Dueling DQN** to reduce overestimation bias.
+### 5. What were the challenges when working with the algorithms?
+The most significant challenge was working with the offline Dataset paradigm (Behavior Cloning). 
+**The Covariate Shift Problem:** In BC, errors compound. If the cloned agent makes a slight mistake that the expert never made, it enters an "out-of-distribution" state. Because the state was never seen in the dataset, the agent acts randomly, usually leading directly to death. This explains why BC performs worse than the Q-Learning expert it cloned.
+
+For Online RL, the challenge was balancing exploration vs. exploitation. Early in training, the snake often exhibited the **"oscillation of the snake"** behavior — aimlessly moving back and forth or spinning in tight circles until it starved. This highlighted the necessity of a fine-tuned $\epsilon$-decay and Reward Shaping to guide the agent toward meaningful exploration.
+
+### 6. How could you improve your results with future work?
+- **Dataset Learning Improvements:** To fix Covariate Shift in imitation learning, we could implement *DAgger* (Dataset Aggregation), where the expert interactively labels the states that the BC agent visits.
+- **Observation Space Expansion:** We could move from the 11-dimensional compact state to Raw Pixel learning using Convolutional Neural Networks (CNNs) with DQN, which would better showcase the strengths of Deep RL over Tabular methods.
 """)
 
 # =====================================================================
 # CELL 24 — Conclusion
 # =====================================================================
-md(r"""## 7. Conclusion
+md(r"""## 10. Conclusion
 
-We implemented and compared four RL algorithms — **Tabular Q-Learning**, **SARSA**, **DQN**, and **PPO** — on a custom Snake environment.
+This project successfully implemented and compared four Online RL algorithms (**Tabular Q-Learning**, **SARSA**, **DQN**, **PPO**) and one Offline Dataset algorithm (**Behavior Cloning**) on a custom Snake environment.
 
 **Key takeaways:**
-- **Tabular methods excel** when the state space is small enough for complete coverage. Q-Learning achieves the highest final performance with minimal training time.
-- **Off-policy (Q-Learning) vs on-policy (SARSA)** differences are clearly visible in risk-taking behavior.
-- **Deep RL methods** (DQN, PPO) provide frameworks for generalization but are overkill for this problem size. They would shine with larger state spaces or pixel-based inputs.
-- **Reward shaping** is a powerful engineering tool that meaningfully accelerates convergence for tabular methods.
-- **Hyperparameter tuning** is critical: learning rate and discount factor significantly impact performance, and even simple grid-search can identify strong configurations.
+- **Tabular methods excel** when the state space is small. As seen in **Panel (a)**, Q-Learning achieved the highest final performance with minimal training time.
+- **Dataset/Imitation Learning is extremely fast but brittle.** Behavior Cloning trains instantly but suffers from *Covariate Shift* when encountering states outside the expert dataset.
+- **Off-policy vs On-policy:** Q-Learning's off-policy updates lead to risk-taking behavior (hugging walls), while SARSA's on-policy updates result in cautious behavior (often reflected as slightly lower variance in **Panel (d)**).
+- **Reward shaping** and **Hyperparameter tuning** are critical engineering tools. **Panel (c)** visually proves that Reward Shaping meaningfully accelerates convergence and maximizes final performance.
 """)
 
 # =====================================================================

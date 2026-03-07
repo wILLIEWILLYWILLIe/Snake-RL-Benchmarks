@@ -149,4 +149,18 @@ project/
 ├── requirements.txt
 ├── README.md
 └── NOTES.md                            ← 你正在看的這份
-```
+
+---
+
+## 9. Dataset Requirement (Project with a Dataset)
+
+為了符合專案要求中 "**moderately large-sized data set**" 的評分標準，我們在 Notebook 中加入了 **離線模仿學習 (Offline Imitation Learning / Behavior Cloning)** 的設計：
+
+1. **專家資料集產生 (Expert Dataset)**：我們讓訓練好的 Q-Learning 代理人玩 1,000 場遊戲，收集了幾十萬筆的 `(狀態, 動作)` 紀錄，這就是我們的 dataset。
+2. **模仿學習演算法 (Behavior Cloning)**：這個演算法不玩遊戲，純粹從 Offline Dataset 中統計機率來複製專家的行為。
+3. **針對評分標準的回應**：
+   - **Training Time**: Tabular 幾秒，Deep RL 幾分鐘，BC(Dataset) 只要零點幾秒（不用玩環境）。
+   - **Results vs Expected**: 解釋為什麼模仿學習表現不佳（因為發生 Covariate Shift）。
+   - **Important parameters**: 提到 Gamma($\gamma$), Epsilon($\epsilon$) 還有 Dataset Coverage 的重要性。
+   - **Challenges**: 分析了 Online RL 的稀疏獎勵挑戰，以及 Dataset Learning 的痛點 Covariate Shift。
+   - **Future Work**: 提到 DAgger 演算法和 CNN 升級版。
