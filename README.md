@@ -1,6 +1,19 @@
-# 🐍 Snake RL — Multi-Algorithm Comparison Project
+# 🐍 Snake Intelligence Lab — Multi-Algorithm RL Benchmarks
+
+[![Language-Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://www.python.org/)
+[![Library-PyTorch](https://img.shields.io/badge/Library-PyTorch-ee4c2c.svg)](https://pytorch.org/)
+[![Env-Gymnasium](https://img.shields.io/badge/Environment-Gymnasium-green.svg)](https://gymnasium.farama.org/)
+[![Status-Final](https://img.shields.io/badge/Status-Presentation%20Ready-orange.svg)]()
 
 This project solves the classic Snake game using **four Reinforcement Learning algorithms** and provides a comprehensive comparison framework including hyperparameter sweeps and reward shaping ablation.
+
+<img src="results/figures/agent_visualization.png" width="500" alt="Agent Visualization">
+*Side-by-side comparison of trained Q-Learning and SARSA agents.*
+
+## 🚀 Final Deliverables
+- **[Final Presentation Notebook (Executed)](Snake_RL_Multi_Algorithm_Comparison_donerun.ipynb)**: The complete project in a single, self-contained, and fully executed Jupyter Notebook.
+- **[Project Research & Development Notes](NOTES.md)**: Detailed breakdown of insights, architecture decisions, and experimental logs.
+- **[Video Presentation Script](_presentation_script.md)**: The English/Mandarin script guide for the final 3-5 minute summary video.
 
 ## Algorithms Implemented
 
@@ -103,5 +116,6 @@ project/
 ├── logs/                               # TensorBoard & training logs
 ├── requirements.txt
 ├── README.md
-└── NOTES.md
+├── [NOTES.md](NOTES.md)
+└── [Snake_RL_Multi_Algorithm_Comparison_donerun.ipynb](Snake_RL_Multi_Algorithm_Comparison_donerun.ipynb)
 ```
