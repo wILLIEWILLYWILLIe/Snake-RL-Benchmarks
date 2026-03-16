@@ -65,10 +65,10 @@
 **🎥 Screen Action:** Scroll to `6.3 Impact of Dataset Size` (CELL 17g). Pause when the **orange line chart** showing percentage vs Score is visible.
 
 **🗣️ Speaker (English):**
-"But a crucial question remained: how much data does Imitation Learning actually need? In cell 17g, we engineered an ablation study. We trained the clone on subsets ranging from 10% to 100% of the dataset. The resulting plot clearly shows that as the dataset size shrinks, the agent's performance collapses dramatically, proving that Imitation Learning is incredibly data-hungry to maintain state space coverage."
+"But a crucial question remained: how much data does Imitation Learning actually need? In cell 17g, we engineered an ablation study. We trained the clone on subsets ranging from 10% to 100% of the dataset. The resulting plot clearly shows that **performance plateaus very early**. Even with just 10% of the data—about 40,000 samples—the simple tabular agent already achieves an average score of around 24, which is nearly as good as the full dataset. This suggests that for our compact 11-dimensional state space, a small volume of expert data provides nearly exhaustive coverage."
 
 **🗣️ Speaker (中文參考):**
-「但我們想到一個關鍵問題：模仿學習到底需要多龐大的資料量？所以在 cell 17g，我們跑了一個消融實驗 (Ablation Study)。我們只取用 10% 到 100% 等不同比例的資料來訓練複製人。跑出來的折線圖非常明確地顯示：當資料量減少，代理人的表現就會雪崩式的下滑。這證明了模仿學習非常『吃資料』，它需要海量的資料來確保狀態空間的覆蓋率。」
+「但我們想到一個關鍵問題：模仿學習到底需要多龐大的資料量？所以在 cell 17g，我們跑了一個消融實驗 (Ablation Study)。我們只取用 10% 到 100% 等不同比例的資料來訓練複製人。跑出來的折線圖非常明確地顯示：**表現很快就進入了高原期 (Plateau)**。即使只用 10% 的資料——大約四萬筆樣本——這個簡單的查表法代理人平均分數就已經來到 24 分左右，跟用全量資料差不多。這證明了在我們的 11 維精簡狀態空間下，少量的資料就足以涵蓋大部分的情況。」
 
 ---
 
@@ -76,10 +76,10 @@
 **🎥 Screen Action:** Scroll down to `8. Visualizing the Agent Side-by-Side`. **Actually run this cell so the animation of the two snakes playing side-by-side starts playing in the video!**
 
 **🗣️ Speaker (English):**
-"Let's visualize the results. Here we have a side-by-side comparison of two fully trained agents in action. On the left is **Q-Learning**, which is off-policy and exhibits risk-seeking behavior, often hugging the walls efficiently. On the right is **SARSA**, which is on-policy and takes more conservative, safer routes to the food. You can see the live score updating as they play."
+"Let's visualize the results. Here we have a side-by-side comparison of two fully trained agents in action. On the left is **Q-Learning**, which is off-policy and exhibits risk-seeking behavior, often hugging the walls efficiently. On the right is our **SARSA (or Deep RL)** agent. While they both play effectively, the Q-Learning agent is slightly more aggressive, while the on-policy nature of SARSA makes it a bit more cautious. You can see the live score updating as they play."
 
 **🗣️ Speaker (中文參考):**
-「我們來看一下實際跑起來的畫面。這邊我們做了一個雙邊對照的動畫：左邊是 **Q-Learning**，因為它是 Off-Policy，你可以看到牠非常貪婪、有時候走位的風險很高，喜歡貼牆走捷徑；右邊則是 **SARSA**，它是 On-Policy，走法就明顯保守跟安全很多。可以看到分數是非常即時的在跳動。」
+「我們來看一下實際跑起來的畫面。這邊我們做了一個雙邊對照的動畫：左邊是 **Q-Learning**，因為它是 Off-Policy，你可以看到牠非常貪婪、喜歡貼牆走捷徑；右邊則是 **SARSA (或是 Deep RL)**，它的走法就明顯保守跟安全一些。可以看到分數是非常即時的在跳動。」
 
 ---
 
@@ -87,18 +87,20 @@
 **🎥 Screen Action:** Scroll up slightly to `5. Hyperparameter Sensitivity` and pause on the **Heatmap & 1D Sweep**. Then scroll to `7. Results & Comparison`. **Keep the 4-panel figure fully visible on the screen.** Point to panels with the mouse cursor as you talk. Then, scroll down to `9. Evaluation & Discussion (point 5: Challenges)`.
 
 **🗣️ Speaker (English):**
-"Moving to our quantitative results. Before comparing algorithms, we performed an exhaustive hyperparameter sweep. As you can see in the heatmap, Q-Learning is highly sensitive to the learning rate ($\\alpha$) and discount factor ($\\gamma$). We also tuned the epsilon decay rate to perfectly balance exploration.
+"Moving to our quantitative results. Before comparing algorithms, we performed an exhaustive hyperparameter sweep. As you can see in the heatmap, Q-Learning is highly sensitive to its parameters. Our primary finding is that **high $\gamma$ (0.95 or above)** is absolutely critical; a lower discount factor makes the snake short-sighted, leading to the low-scoring 'red zones' you see in the corner. We also tuned the epsilon decay rate to perfectly balance exploration.
 In the 4-panel figure below...
-In **Panel A (Learning Curves)**, you can see Tabular methods converge almost instantly, whereas PPO takes much longer to warm up. 
-In **Panel C (Reward Shaping)**, we faced our first major setback: **sparse rewards**. Initially, the snake would just spin in circles until it died—a behavior we called the 'oscillation of the snake'. We solved this by implementing distance-based Reward Shaping, and the green line proves it climbs much faster than without it.
-Our second major challenge was with the dataset. As you can see, the **Behavior Cloning** didn't perfectly map the expert. This is due to **Covariate Shift**—if the static agent makes one mistake the expert never made, it falls out-of-distribution and crashes instantly."
+In **Panel (a)**, the learning curves show Tabular methods converge almost instantly, while PPO takes more time to reach peak performance.
+In **Panel (b)**, looking at final average scores, you'll notice that **Q-Learning, SARSA, and PPO** all achieve mastery with scores above 20, whereas **DQN** noticeably lags behind in this environment.
+In **Panel (c)**, we show the impact of **Reward Shaping**. Without it, the snake often aimlessly moves in circles—a behavior we call the 'oscillation of the snake'. Adding distance-based rewards solves this, allowing the agent to climb much faster.
+Finally, **Panel (d)** shows the score distribution. You'll see that while Q-Learning has a high average, its variance is a bit wider than SARSA's, which tends to be more consistent due to its conservative nature."
 
 **🗣️ Speaker (中文參考):**
-「接下來我們看數據結果。在比較前面，我們做了一個全面的超參數搜尋 (Hyperparameter Sweep)。從熱力圖可以看到，Q-Learning 對學習率 ($\\alpha$) 和折扣因子 ($\\gamma$) 相當敏感。我們也特別調整了探索衰減率 ($\\epsilon$-decay)，以完美平衡探索與利用。
-在下面的 4-Panel 數據對照圖中...
-在 **圖(a)學習曲線** 中可以發現，Tabular 方法收斂得非常快，而 PPO 就需要大量的時間暖機。
-在開發過程中，我們遇到第一個巨大挫折是『稀疏獎勵』，蛇在早期只會原地轉圈或抖動 (Oscillation of the snake)。為了解決這個，我們加入了基於距離的 **Reward Shaping**。你可以看到 **圖(c)** 中，綠線(有Shaping) 遠遠甩開了藍線。
-第二個挫折是在做 Dataset 模仿學習時發生的。我們發現 Behavior Cloning 的表現比原本的專家還要差，因為它遇到了經典的 **Covariate Shift** 問題。只要不小心走錯一步，進入了資料集中從未出現過的狀態，代理人就會不知道怎麼辦而直接撞牆。」
+「接下來我們看數據結果。在比較前，我們做了一個全面的超參數搜尋 (Hyperparameter Sweep)。從熱力圖可以看到，Q-Learning 對參數非常敏感。我們最重要的發現是：**高 $\gamma$ (0.95 以上)** 是絕對關鍵的；較低的折扣因子會讓蛇變得很短視，導致你在角落看到的低分『紅區』。我們也特別調整了探索衰減率 ($\epsilon$-decay)，以平衡探索與利用。
+讓我們看這張四合一的數據圖表：
+在 **圖(a)** 中，你可以看到 Tabular 方法幾乎是瞬間收斂，而 PPO 則需要更長的時間才達到最高水準。
+在 **圖(b)** 的最終平均分中，**Q-Learning、SARSA 和 PPO** 都穩定達到 20 分以上，表現優異；相比之下，**DQN** 在這個環境中的效率明顯較差。
+在 **圖(c)** 中，我們展示了 **Reward Shaping** 的威力。沒有它，蛇只會在那裡原地打轉（我們稱之為「蛇的震盪」）。加入距離獎勵後，學習曲線明顯拉升。
+最後，**圖(d)** 顯示了分數分佈。你可以看到 Q-Learning 雖然高分，但波動稍微比 SARSA 大一點，SARSA 因為走法保守，表現相對穩定。」
 
 ---
 
@@ -106,7 +108,17 @@ Our second major challenge was with the dataset. As you can see, the **Behavior 
 **🎥 Screen Action:** Scroll down to the final section: `10. Conclusion`.
 
 **🗣️ Speaker (English):**
-"In conclusion, we successfully demonstrated that for highly condensed, small state-space MDPs like our 11-dimension Snake environment, **Tabular Q-Learning is vastly superior** in terms of both training time—taking seconds on a CPU—and final performance compared to Deep Neural Networks. While deep models excel in massive pixel environments, our handcrafted feature engineering made Tabular methods the undisputed winner here. For future work, we plan to implement DAgger to fix the Covariate Shift in imitation learning. Thank you for watching."
+"In conclusion, we successfully implemented and compared four Online RL algorithms and one Offline Imitation Learning algorithm. Our key takeaways are:
+First, **Tabular methods excel** when the state space is elegantly condensed. Q-Learning achieved the highest performance in mere seconds, outperforming Deep RL models that took minutes.
+Second, we observed the fundamental difference between **Off-policy and On-policy** learners: Q-Learning's optimistic updates lead to aggressive, risk-taking behavior, while SARSA remains more cautious.
+Third, while **Imitation Learning** is extremely fast to train, it remains brittle due to **Covariate Shift** when it faces states outside its training data.
+And finally, the project proved that **Reward Shaping and Hyperparameter tuning** are not just secondary details—they are critical to getting RL agents to converge at all.
+For future work, we plan to implement DAgger to fix imitation shift and expand our model to **Raw Pixel learning** using CNNs to better utilize the power of Deep RL. Thank you for watching."
 
 **🗣️ Speaker (中文參考):**
-「總結來說，我們證實了一件事：當我們把環境狀態極度濃縮成這種 11 維度的向量時，**Tabular Q-Learning 是絕對的王者**。它用單核 CPU 跑幾秒鐘的速度，在最終表現上徹底碾壓了跑了幾分鐘的 Deep RL 神經網路。雖然深度學習在處理龐大的像素畫面很強，但因為我們做了極佳的特徵工程 (Feature Engineering)，表格型演算法在這裡發揮了最大的價值。未來我們希望實作 DAgger 演算法來解決模仿學習的步態偏移問題。謝謝大家。」
+「總結來說，我們成功實作並比較了四種在線強化學習與一種離線模仿學習。我們有幾個關鍵的收穫：
+第一，當環境狀態被精煉得很好時，**Tabular 方法表現優異**。Q-Learning 只需要幾秒鐘就能達到最高效能，遠快於需要數分鐘的深度學習模型。
+第二，我們觀察到了 **Off-policy 與 On-policy** 的本質差異：Q-Learning 的樂觀更新讓牠展現出富有侵略性的冒險走法，而 SARSA 則相對謹慎穩定。
+第三，**模仿學習 (BC)** 雖然訓練極快，但因為 **Covariate Shift** 問題，在面對資料集以外的狀態時顯得非常脆弱。
+最後，這個專案證明了 **Reward Shaping 和 超參數調優** 並非可有可無，而是讓強化學習收斂的關鍵工程手段。
+未來，我們計畫實作 DAgger 演算法來優化模仿學習，並嘗試使用 CNN 進行 **Raw Pixel (原始圖像)** 的學習，以更全面地發揮深度學習的優勢。謝謝大家。」
