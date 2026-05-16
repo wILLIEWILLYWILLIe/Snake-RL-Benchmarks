@@ -1,6 +1,6 @@
 # Virtual environment
 venv/
-venv/*
+.venv/
 
 # Python
 __pycache__/
@@ -9,13 +9,11 @@ __pycache__/
 *.so
 .Python
 env/
-build/
 develop-eggs/
 dist/
 downloads/
 eggs/
 .eggs/
-lib/
 lib64/
 parts/
 sdist/
@@ -25,9 +23,19 @@ wheels/
 .installed.cfg
 *.egg
 
-# Data/Results (Optional: if they are large, you might want to ignore them)
-# results/models/
-# logs/
+# MCU / embedded build artifacts
+_build/
+*.o
+*.d
+*.hex
+*.bin
+*.elf
+*.Map
+*.os
+*.map
+
+# nRF SDK — external dependency, not committed
+software/nrf52x-base/
 
 # OS
 .DS_Store

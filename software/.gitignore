@@ -1,0 +1,6 @@
+_build/
+*.swp
+.gdbinit
+
+# External SDK — fetch via submodule or download separately
+nrf52x-base/
